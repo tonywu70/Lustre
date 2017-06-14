@@ -194,7 +194,7 @@ setup_disks()
 		setup_data_disks $BEEGFS_METADATA "ext4" "$metadataDevices" "md10"
 	fi
 	
-    mount -a
+    #mount -a
 }
 
 install_lustre_repo()
