@@ -112,28 +112,28 @@ EOF
     sleep 10
 
     # Create RAID-0 volume
-    if [ -n "$createdPartitions" ]; then
-        devices=`echo $createdPartitions | wc -w`
-        mdadm --create /dev/$raidDevice --level 0 --raid-devices $devices $createdPartitions
+    #if [ -n "$createdPartitions" ]; then
+     #   devices=`echo $createdPartitions | wc -w`
+        #mdadm --create /dev/$raidDevice --level 0 --raid-devices $devices $createdPartitions
         
-        sleep 10
+      #  sleep 10
         
-        mdadm /dev/$raidDevice
+        #mdadm /dev/$raidDevice
 
         #if [ "$filesystem" == "xfs" ]; then
             #mkfs -t $filesystem /dev/$raidDevice
             #echo "/dev/$raidDevice $mountPoint $filesystem rw,noatime,attr2,inode64,nobarrier,sunit=1024,swidth=4096,nofail 0 2" >> /etc/fstab
         #else
             #mkfs.ext4 -i 2048 -I 512 -J size=400 -Odir_index,filetype /dev/$raidDevice
-            sleep 5
+       #     sleep 5
             #tune2fs -o user_xattr /dev/$raidDevice
             #echo "/dev/$raidDevice $mountPoint $filesystem noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
         #fi
         
-        sleep 10
+        #sleep 10
         
-        mount /dev/$raidDevice
-    fi
+        #mount /dev/$raidDevice
+    #fi
 }
 
 setup_disks()
@@ -210,38 +210,18 @@ install_beegfs_repo()
 
 }
 
-install_beegfs()
-{
-       
+install_lustre()
+{     
 	# setup metata data
     if is_metadatanode; then
-		cat >  /etc/yum.repo.d/LustrePack.repo << "EOF"
-[lustreserver]
-name=lustreserver
-baseurl=https://downloads.hpdd.intel.com/public/lustre/latest-feature-release/el7/server/
-enabled=1
-gpgcheck=0
-
-[e2fs]
-name=e2fs
-baseurl=https://downloads.hpdd.intel.com/public/e2fsprogs/latest/el7/
-enabled=1
-gpgcheck=0
-
-[lustreclient]
-name=lustreclient
-baseurl=https://downloads.hpdd.intel.com/public/lustre/latest-feature-release/el7/client/
-enabled=1
-gpgcheck=0
-EOF
 		
-        yum install kernel-3.10.0-514.el7_lustre.x86_64
-        yum install lustre-2.9.0-1.el7.x86_64
-        yum install kmod-lustre-2.9.0-1.el7.x86_64
-        yum install kmod-lustre-osd-ldiskfs-2.9.0-1.el7.x86_64
-        yum install lustre-osd-ldiskfs-mount-2.9.0-1.el7.x86_64
-        yum install e2fsprogs
-        yum install lustre-tests-2.9.0-1.el7.x86_64
+        yum -y install kernel-3.10.0-514.el7_lustre.x86_64
+        yum -y install lustre-2.9.0-1.el7.x86_64
+        yum -y install kmod-lustre-2.9.0-1.el7.x86_64
+        yum -y install kmod-lustre-osd-ldiskfs-2.9.0-1.el7.x86_64
+        yum -y install lustre-osd-ldiskfs-mount-2.9.0-1.el7.x86_64
+        yum -y install e2fsprogs
+        yum -y install lustre-tests-2.9.0-1.el7.x86_64
 
         echo “options lnet networks=tcp”> /etc/modprobe.d/lnet.conf
         chkconfig lnet --add
@@ -249,9 +229,9 @@ EOF
         chkconfig lustre --add
         chkconfig lustre on
         
-        mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/md10
+        mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
         mkdir /mnt/mgsmds
-        mount -t lustre /dev/md10 /mnt/mgsmds
+        mount -t lustre /dev/sdc /mnt/mgsmds
 		
 		echo "/dev/md10 /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
 	fi
