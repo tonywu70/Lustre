@@ -79,7 +79,7 @@ is_client()
 install_pkgs()
 {
     yum -y install epel-release
-    yum -y install zlib zlib-devel bzip2 bzip2-devel bzip2-libs openssl openssl-devel openssl-libs gcc gcc-c++ nfs-utils rpcbind mdadm wget python-pip kernel kernel-devel openmpi openmpi-devel automake autoconf
+    #yum -y install zlib zlib-devel bzip2 bzip2-devel bzip2-libs openssl openssl-devel openssl-libs gcc gcc-c++ nfs-utils rpcbind mdadm wget python-pip openmpi #openmpi-devel automake autoconf
 }
 
 # Partitions all data disks attached to the VM and creates
@@ -197,16 +197,15 @@ setup_disks()
     mount -a
 }
 
-install_beegfs_repo()
+install_lustre_repo()
 {
     # Install BeeGFS repo
     #wget -O beegfs-rhel7.repo http://www.beegfs.com/release/beegfs_2015.03/dists/beegfs-rhel7.repo
-    wget -O beegfs-rhel7.repo http://www.beegfs.com/release/beegfs_6/dists/beegfs-rhel7.repo
+    wget -O LustrePack.repo https://raw.githubusercontent.com/azmigproject/Lustre/master/beegfsscripts/LustrePack.repo
 	
-
-    mv beegfs-rhel7.repo /etc/yum.repos.d/beegfs.repo
+	mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo
     #rpm --import http://www.beegfs.com/release/beegfs_2015.03/gpg/RPM-GPG-KEY-beegfs
-    rpm --import http://www.beegfs.com/release/beegfs_6/gpg/RPM-GPG-KEY-beegfs
+    #rpm --import http://www.beegfs.com/release/beegfs_6/gpg/RPM-GPG-KEY-beegfs
 
 }
 
@@ -233,7 +232,7 @@ install_lustre()
         mkdir /mnt/mgsmds
         mount -t lustre /dev/sdc /mnt/mgsmds
 		
-		echo "/dev/md10 /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
+		echo "/dev/sdc /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
 	fi
 	
 	# setup storage
@@ -335,7 +334,7 @@ setup_disks
 setup_user
 #tune_tcp
 #setup_domain
-#install_beegfs_repo
+install_lustre_repo
 install_lustre
 #download_lis
 #install_lis_in_cron
