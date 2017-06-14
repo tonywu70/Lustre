@@ -106,7 +106,8 @@
 	"installLIS": "bash InstallLIS.sh",
     "templatelink": "[uri(deployment().properties.templateLink.uri, 'Scripts')]",
     "installLIS": "bash InstallLIS.sh",
-    "PremiumStorageMap": {
+    "currentDataDiskSize" : "P30",
+	"PremiumStorageMap": {
       "P10": {
         "size": 128
       },
@@ -117,6 +118,13 @@
         "size": 1023
       }
     },
+	"metadataDiskArray": [
+      {
+        "diskSizeGB": "[variables('PremiumStorageMap')[variables('currentDataDiskSize')].size]",
+        "lun": "0",
+        "createOption": "Empty"
+      }
+	],
     "image": "[parameters('VMImage')]",
     "beeGFSNodeSettings": {
       "VMsku": "[parameters('VMSize')]"
@@ -257,7 +265,8 @@
                 "storageAccountType": "Premium_LRS"
               }
             },
-            "imageReference": "[variables('nodeOSSettings').imageReference]"
+            "imageReference": "[variables('nodeOSSettings').imageReference]",
+            "dataDisks":"[variables('metadataDiskArray')]"
           },
           "osProfile": {
             "computerNamePrefix": "[parameters('vmssName')]",
