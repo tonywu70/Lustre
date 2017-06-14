@@ -25,7 +25,7 @@ if [ -n "$3" ]; then
 	SHARE_SCRATCH=$3
 fi
 
-BEEGFS_METADATA=/data/beegfs/meta
+BEEGFS_METADATA=/mnt/mgsmds
 BEEGFS_STORAGE=/data/beegfs/storage
 
 # User
@@ -79,7 +79,7 @@ is_client()
 install_pkgs()
 {
     yum -y install epel-release
-    yum -y install zlib zlib-devel bzip2 bzip2-devel bzip2-libs openssl openssl-devel openssl-libs gcc gcc-c++ nfs-utils rpcbind mdadm wget python-pip https://buildlogs.centos.org/c7.1511.u/kernel/20161024152721/3.10.0-327.36.3.el7.x86_64/kernel-3.10.0-327.36.3.el7.src.rpm https://buildlogs.centos.org/c7.1511.u/kernel/20161024152721/3.10.0-327.36.3.el7.x86_64/kernel-devel-3.10.0-327.36.3.el7.x86_64.rpm https://buildlogs.centos.org/c7.1511.u/kernel/20161024152721/3.10.0-327.36.3.el7.x86_64/kernel-headers-3.10.0-327.36.3.el7.x86_64.rpm https://buildlogs.centos.org/c7.1511.u/kernel/20161024152721/3.10.0-327.36.3.el7.x86_64/kernel-tools-libs-devel-3.10.0-327.36.3.el7.x86_64.rpm openmpi openmpi-devel automake autoconf
+    yum -y install zlib zlib-devel bzip2 bzip2-devel bzip2-libs openssl openssl-devel openssl-libs gcc gcc-c++ nfs-utils rpcbind mdadm wget python-pip kernel kernel-devel openmpi openmpi-devel automake autoconf
 }
 
 # Partitions all data disks attached to the VM and creates
@@ -121,13 +121,13 @@ EOF
         mdadm /dev/$raidDevice
 
         if [ "$filesystem" == "xfs" ]; then
-            mkfs -t $filesystem /dev/$raidDevice
-            echo "/dev/$raidDevice $mountPoint $filesystem rw,noatime,attr2,inode64,nobarrier,sunit=1024,swidth=4096,nofail 0 2" >> /etc/fstab
+            #mkfs -t $filesystem /dev/$raidDevice
+            #echo "/dev/$raidDevice $mountPoint $filesystem rw,noatime,attr2,inode64,nobarrier,sunit=1024,swidth=4096,nofail 0 2" >> /etc/fstab
         else
-            mkfs.ext4 -i 2048 -I 512 -J size=400 -Odir_index,filetype /dev/$raidDevice
+            #mkfs.ext4 -i 2048 -I 512 -J size=400 -Odir_index,filetype /dev/$raidDevice
             sleep 5
-            tune2fs -o user_xattr /dev/$raidDevice
-            echo "/dev/$raidDevice $mountPoint $filesystem noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
+            #tune2fs -o user_xattr /dev/$raidDevice
+            #echo "/dev/$raidDevice $mountPoint $filesystem noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
         fi
         
         sleep 10
@@ -184,14 +184,14 @@ setup_disks()
         storageDevices="`fdisk -l | grep '^Disk /dev/' | grep $storageDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tr '\n' ' ' | sed 's|/dev/||g'`"
     fi
 
-    if is_storagenode; then
-		mkdir -p $BEEGFS_STORAGE
-		setup_data_disks $BEEGFS_STORAGE "xfs" "$storageDevices" "md10"
-	fi
+    #if is_storagenode; then
+	#	mkdir -p $BEEGFS_STORAGE
+	#	setup_data_disks $BEEGFS_STORAGE "xfs" "$storageDevices" "md10"
+	#fi
 	
     if is_metadatanode; then
-		mkdir -p $BEEGFS_METADATA    
-		setup_data_disks $BEEGFS_METADATA "ext4" "$metadataDevices" "md20"
+		#mkdir -p $BEEGFS_METADATA    
+		setup_data_disks $BEEGFS_METADATA "ext4" "$metadataDevices" "md10"
 	fi
 	
     mount -a
@@ -199,10 +199,15 @@ setup_disks()
 
 install_beegfs_repo()
 {
-    # Install BeeGFS repo    
+    # Install BeeGFS repo
+    #wget -O beegfs-rhel7.repo http://www.beegfs.com/release/beegfs_2015.03/dists/beegfs-rhel7.repo
     wget -O beegfs-rhel7.repo http://www.beegfs.com/release/beegfs_6/dists/beegfs-rhel7.repo
-    mv beegfs-rhel7.repo /etc/yum.repos.d/beegfs.repo    
+	
+
+    mv beegfs-rhel7.repo /etc/yum.repos.d/beegfs.repo
+    #rpm --import http://www.beegfs.com/release/beegfs_2015.03/gpg/RPM-GPG-KEY-beegfs
     rpm --import http://www.beegfs.com/release/beegfs_6/gpg/RPM-GPG-KEY-beegfs
+
 }
 
 install_beegfs()
@@ -210,15 +215,45 @@ install_beegfs()
        
 	# setup metata data
     if is_metadatanode; then
-		yum install -y beegfs-meta
-		sed -i 's|^storeMetaDirectory.*|storeMetaDirectory = '$BEEGFS_METADATA'|g' /etc/beegfs/beegfs-meta.conf
-		sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-meta.conf
+		cat >  /etc/yum.repo.d/LustrePack.repo << "EOF"
+[lustreserver]
+name=lustreserver
+baseurl=https://downloads.hpdd.intel.com/public/lustre/latest-feature-release/el7/server/
+enabled=1
+gpgcheck=0
 
-		tune_meta
+[e2fs]
+name=e2fs
+baseurl=https://downloads.hpdd.intel.com/public/e2fsprogs/latest/el7/
+enabled=1
+gpgcheck=0
 
-		systemctl daemon-reload
-		systemctl enable beegfs-meta.service
+[lustreclient]
+name=lustreclient
+baseurl=https://downloads.hpdd.intel.com/public/lustre/latest-feature-release/el7/client/
+enabled=1
+gpgcheck=0
+EOF
 		
+        yum install kernel-3.10.0-514.el7_lustre.x86_64
+        yum install lustre-2.9.0-1.el7.x86_64
+        yum install kmod-lustre-2.9.0-1.el7.x86_64
+        yum install kmod-lustre-osd-ldiskfs-2.9.0-1.el7.x86_64
+        yum install lustre-osd-ldiskfs-mount-2.9.0-1.el7.x86_64
+        yum install e2fsprogs
+        yum install lustre-tests-2.9.0-1.el7.x86_64
+
+        echo “options lnet networks=tcp”> /etc/modprobe.d/lnet.conf
+        chkconfig lnet --add
+        chkconfig lnet on
+        chkconfig lustre --add
+        chkconfig lustre on
+        
+        mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/md10
+        mkdir /mnt/mgsmds
+        mount -t lustre /dev/md10 /mnt/mgsmds
+		
+		echo "/dev/md10 /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
 	fi
 	
 	# setup storage
@@ -231,30 +266,6 @@ install_beegfs()
 
 		systemctl daemon-reload
 		systemctl enable beegfs-storage.service
-	fi
-
-	# setup management
-	if is_management; then
-		yum install -y beegfs-mgmtd beegfs-helperd beegfs-utils beegfs-admon
-        
-		# Install management server and client
-		mkdir -p /data/beegfs/mgmtd
-		sed -i 's|^storeMgmtdDirectory.*|storeMgmtdDirectory = /data/beegfs/mgmt|g' /etc/beegfs/beegfs-mgmtd.conf
-		sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-admon.conf
-		systemctl daemon-reload
-		systemctl enable beegfs-mgmtd.service
-		systemctl enable beegfs-admon.service
-	fi
-
-	if is_client; then
-		yum install -y beegfs-client beegfs-helperd beegfs-utils
-		# setup client
-		sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-client.conf
-		echo "$SHARE_SCRATCH /etc/beegfs/beegfs-client.conf" > /etc/beegfs/beegfs-mounts.conf
-	
-		systemctl daemon-reload
-		systemctl enable beegfs-helperd.service
-		systemctl enable beegfs-client.service
 	fi
 }
 
@@ -326,34 +337,6 @@ setup_user()
 
 }
 
-download_lis()
-{
-	wget -O /root/lis-rpms-4.1.3-1.tar.gz https://download.microsoft.com/download/7/6/B/76BE7A6E-E39F-436C-9353-F4B44EF966E9/lis-rpms-4.1.3-1.tar.gz
-    tar -xvzf /root/lis-rpms-4.1.3-1.tar.gz -C /root
-}
-
-install_lis_in_cron()
-{
-	cat >  /root/lis_install.sh << "EOF"
-#!/bin/bash
-SETUP_LIS=/root/lispackage.setup
-
-if [ -e "$SETUP_LIS" ]; then
-    #echo "We're already configured, exiting..."
-    exit 0
-fi
-cd /root/LISISO
-./install.sh
-touch $SETUP_LIS
-shutdown -r +1
-EOF
-	chmod 700 /root/lis_install.sh
-	crontab -l > LIScron
-	echo "@reboot /root/lis_install.sh >>/root/log.txt" >> LIScron
-	crontab LIScron
-	rm LIScron
-}
-
 SETUP_MARKER=/var/local/install_beegfs.marker
 if [ -e "$SETUP_MARKER" ]; then
     echo "We're already configured, exiting..."
@@ -370,12 +353,12 @@ setenforce 0
 install_pkgs
 setup_disks
 setup_user
-tune_tcp
-setup_domain
-install_beegfs_repo
-install_beegfs
-download_lis
-install_lis_in_cron
+#tune_tcp
+#setup_domain
+#install_beegfs_repo
+install_lustre
+#download_lis
+#install_lis_in_cron
 
 # Create marker file so we know we're configured
 touch $SETUP_MARKER

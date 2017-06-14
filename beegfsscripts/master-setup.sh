@@ -98,26 +98,6 @@ mount_nfs()
     systemctl start nfs-server || echo "Already enabled"
 		
 }
-save_scripts()
-{
-	resizevmscriptlink="$templatelink/ResizeVMinScaleSet"
-	beegfslistnodelink="$templatelink/BeeGFSListNode.sh"
-	beegfsvmss="$templatelink/vmss.sh"
-    configureazurecli="$templatelink/install_azureCLI.sh"
-
-	mkdir -p /home/$USERNAME/Scripts
-	cd /home/$USERNAME/Scripts
-	wget "$beegfslistnodelink"
-	wget "$beegfsvmss"
-	wget "$configureazurecli"
-	
-	mkdir -p /home/$USERNAME/Scripts/ResizeVMinScaleSet
-	cd /home/$USERNAME/Scripts/ResizeVMinScaleSet
-	wget "$resizevmscriptlink/changesize.sh"
-	wget "$resizevmscriptlink/parameters.csv"
-	wget "$resizevmscriptlink/vmss.json"
-}
-
 SETUP_MARKER=/var/tmp/master-setup.marker
 if [ -e "$SETUP_MARKER" ]; then
     echo "We're already configured, exiting..."
