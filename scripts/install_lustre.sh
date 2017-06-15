@@ -220,15 +220,23 @@ setup_user()
 
 setup_lustrecron()
 {
-    cat >  /usr/local/bin/installlustre.sh << "EOF"
+    cat >  /root/installlustre.sh << "EOF"
 #!/bin/bash
+SETUP_L=/root/lustresetup	.setup
+
+if [ -e "$SETUP_L" ]; then
+    #echo "We're already configured, exiting..."
+    exit 0
+fi
 mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
 mkdir /mnt/mgsmds
 mount -t lustre /dev/sdc /mnt/mgsmds
+echo "/dev/sdc /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
+touch $SETUP_LIS
 EOF
-	chmod 700 /usr/local/bin/installlustre.sh
+	chmod 700 /root/installlustre.sh
 	crontab -l > lustrecron
-	echo "@reboot /usr/local/bin/installlustre.sh >>/usr/local/bin/log.txt" >> lustrecron
+	echo "@reboot /root/installlustre.sh >>/root/log.txt" >> lustrecron
 	crontab lustrecron
 	rm lustrecron
 }
