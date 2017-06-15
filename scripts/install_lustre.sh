@@ -228,9 +228,10 @@ if [ -e "$SETUP_L" ]; then
     #echo "We're already configured, exiting..."
     exit 0
 fi
-mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
+touch /root/teststart.setup
+sudo mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
 mkdir /mnt/mgsmds
-mount -t lustre /dev/sdc /mnt/mgsmds
+sudo mount -t lustre /dev/sdc /mnt/mgsmds
 echo "/dev/sdc /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
 touch /root/lustre.setup
 EOF
