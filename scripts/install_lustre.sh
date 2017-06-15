@@ -222,7 +222,7 @@ setup_lustrecron()
 {
     cat >  /root/installlustre.sh << "EOF"
 #!/bin/bash
-SETUP_L=/root/lustresetup	.setup
+SETUP_L=/root/lustre.setup
 
 if [ -e "$SETUP_L" ]; then
     #echo "We're already configured, exiting..."
