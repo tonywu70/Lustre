@@ -14,9 +14,7 @@ if [ $# < 2 ]; then
 fi
 
 MGMT_HOSTNAME=`hostname`
-#MGMT_HOSTNAME=$1
-BEEGFS_NODE_TYPE="$2"
-CUSTOMDOMAIN=$4
+NODE_TYPE="$2"
 
 # Shares
 SHARE_HOME=/share/home
@@ -25,8 +23,7 @@ if [ -n "$3" ]; then
 	SHARE_SCRATCH=$3
 fi
 
-BEEGFS_METADATA=/mnt/mgsmds
-BEEGFS_STORAGE=/data/beegfs/storage
+METADATA=/mnt/mgsmds
 
 # User
 HPC_USER=hpcuser
@@ -44,31 +41,7 @@ is_management()
 
 is_metadatanode()
 {
-	if [ "$BEEGFS_NODE_TYPE" == "meta" ] || is_convergednode ; then 
-		return 0
-	fi
-	return 1
-}
-
-is_storagenode()
-{
-	if [ "$BEEGFS_NODE_TYPE" == "storage" ] || is_convergednode ; then 
-		return 0
-	fi
-	return 1
-}
-
-is_convergednode()
-{
-	if [ "$BEEGFS_NODE_TYPE" == "both" ]; then 
-		return 0
-	fi
-	return 1
-}
-
-is_client()
-{
-	if [ "$BEEGFS_NODE_TYPE" == "client" ] || is_management ; then 
+	if [ "$NODE_TYPE" == "meta" ]; then 
 		return 0
 	fi
 	return 1
@@ -183,29 +156,15 @@ setup_disks()
         metadataDevices="`fdisk -l | grep '^Disk /dev/' | grep $metadataDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tr '\n' ' ' | sed 's|/dev/||g'`"
         storageDevices="`fdisk -l | grep '^Disk /dev/' | grep $storageDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tr '\n' ' ' | sed 's|/dev/||g'`"
     fi
-
-    #if is_storagenode; then
-	#	mkdir -p $BEEGFS_STORAGE
-	#	setup_data_disks $BEEGFS_STORAGE "xfs" "$storageDevices" "md10"
-	#fi
-	
-    if is_metadatanode; then
-		#mkdir -p $BEEGFS_METADATA    
-		setup_data_disks $BEEGFS_METADATA "ext4" "$metadataDevices" "md10"
-	fi
-	
-    #mount -a
+    setup_data_disks $METADATA "ext4" "$metadataDevices" "md10"
 }
 
 install_lustre_repo()
 {
-    # Install BeeGFS repo
-    #wget -O beegfs-rhel7.repo http://www.beegfs.com/release/beegfs_2015.03/dists/beegfs-rhel7.repo
-    wget -O LustrePack.repo https://raw.githubusercontent.com/azmigproject/Lustre/master/beegfsscripts/LustrePack.repo
-	
-	mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo
-    #rpm --import http://www.beegfs.com/release/beegfs_2015.03/gpg/RPM-GPG-KEY-beegfs
-    #rpm --import http://www.beegfs.com/release/beegfs_6/gpg/RPM-GPG-KEY-beegfs
+    # Install Lustre repo
+    wget -O LustrePack.repo https://raw.githubusercontent.com/azmigproject/Lustre/master/scripts/LustrePack.repo
+    mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo
+    
 
 }
 
@@ -234,63 +193,6 @@ install_lustre()
 		
 		echo "/dev/sdc /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
 	fi
-	
-	# setup storage
-    if is_storagenode; then
-		yum install -y beegfs-storage
-		sed -i 's|^storeStorageDirectory.*|storeStorageDirectory = '$BEEGFS_STORAGE'|g' /etc/beegfs/beegfs-storage.conf
-		sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-storage.conf
-
-		tune_storage
-
-		systemctl daemon-reload
-		systemctl enable beegfs-storage.service
-	fi
-}
-
-tune_storage()
-{
-	#echo deadline > /sys/block/md10/queue/scheduler
-	#echo 4096 > /sys/block/md10/queue/nr_requests
-	#echo 32768 > /sys/block/md10/queue/read_ahead_kb
-
-	sed -i 's/^connMaxInternodeNum.*/connMaxInternodeNum = 800/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneNumWorkers.*/tuneNumWorkers = 128/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneFileReadAheadSize.*/tuneFileReadAheadSize = 32m/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneFileReadAheadTriggerSize.*/tuneFileReadAheadTriggerSize = 2m/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneFileReadSize.*/tuneFileReadSize = 256k/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneFileWriteSize.*/tuneFileWriteSize = 256k/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneWorkerBufSize.*/tuneWorkerBufSize = 16m/g' /etc/beegfs/beegfs-storage.conf	
-}
-
-tune_meta()
-{
-	# See http://www.beegfs.com/wiki/MetaServerTuning#xattr
-	#echo deadline > /sys/block/md20/queue/scheduler
-	#echo 128 > /sys/block/md20/queue/nr_requests
-	#echo 128 > /sys/block/md20/queue/read_ahead_kb
-
-	sed -i 's/^connMaxInternodeNum.*/connMaxInternodeNum = 800/g' /etc/beegfs/beegfs-meta.conf
-	sed -i 's/^tuneNumWorkers.*/tuneNumWorkers = 128/g' /etc/beegfs/beegfs-meta.conf
-}
-
-tune_tcp()
-{
-    echo "net.ipv4.neigh.default.gc_thresh1=1100" >> /etc/sysctl.conf
-    echo "net.ipv4.neigh.default.gc_thresh2=2200" >> /etc/sysctl.conf
-    echo "net.ipv4.neigh.default.gc_thresh3=4400" >> /etc/sysctl.conf
-}
-
-setup_domain()
-{
-    if [ -n "$CUSTOMDOMAIN" ]; then
-
-		# surround domain names separated by comma with " after removing extra spaces
-		QUOTEDDOMAIN=$(echo $CUSTOMDOMAIN | sed -e 's/ //g' -e 's/"//g' -e 's/^\|$/"/g' -e 's/,/","/g')
-		echo $QUOTEDDOMAIN
-
-		echo "supersede domain-search $QUOTEDDOMAIN;" >> /etc/dhcp/dhclient.conf
-	fi
 }
 
 setup_user()
@@ -316,14 +218,29 @@ setup_user()
 
 }
 
-SETUP_MARKER=/var/local/install_beegfs.marker
+setup_lustrecron()
+{
+    cat >  /usr/local/bin/installlustre.sh << "EOF"
+#!/bin/bash
+mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
+mkdir /mnt/mgsmds
+mount -t lustre /dev/sdc /mnt/mgsmds
+EOF
+	chmod 700 /usr/local/bin/installlustre.sh
+	crontab -l > lustrecron
+	echo "@reboot /usr/local/bin/installlustre.sh >>/usr/local/bin/log.txt" >> lustrecron
+	crontab lustrecron
+	rm lustrecron
+}
+
+SETUP_MARKER=/var/local/install_lustre.marker
 if [ -e "$SETUP_MARKER" ]; then
     echo "We're already configured, exiting..."
     exit 0
 fi
 
-systemctl stop firewalld
-systemctl disable firewalld
+#systemctl stop firewalld
+#systemctl disable firewalld
 
 # Disable SELinux
 sed -i 's/SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
@@ -332,15 +249,12 @@ setenforce 0
 install_pkgs
 setup_disks
 setup_user
-#tune_tcp
-#setup_domain
 install_lustre_repo
 install_lustre
-#download_lis
-#install_lis_in_cron
+setup_lustrecron
 
 # Create marker file so we know we're configured
 touch $SETUP_MARKER
 
-#shutdown -r +1 &
+shutdown -r +1 &
 exit 0
