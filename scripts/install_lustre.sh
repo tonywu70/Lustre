@@ -187,11 +187,11 @@ install_lustre()
         chkconfig lustre --add
         chkconfig lustre on
         
-        mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
-        mkdir /mnt/mgsmds
-        mount -t lustre /dev/sdc /mnt/mgsmds
+        #mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
+        #mkdir /mnt/mgsmds
+        #mount -t lustre /dev/sdc /mnt/mgsmds
 		
-		echo "/dev/sdc /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
+		#echo "/dev/sdc /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
 	fi
 }
 
