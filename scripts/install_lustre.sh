@@ -255,7 +255,7 @@ sed -i 's/SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
 install_pkgs
-setup_disks
+#setup_disks
 setup_user
 install_lustre_repo
 install_lustre
