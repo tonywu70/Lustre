@@ -107,7 +107,6 @@ fi
 setup_disks
 mount_nfs
 setup_user
-save_scripts
 
 # Create marker file so we know we're configured
 touch $SETUP_MARKER

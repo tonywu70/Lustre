@@ -150,7 +150,7 @@
     },
     "computeApiVersion": "2016-04-30-preview",
     "sshKeyPath": "[concat('/home/',variables('nodeOSSettings').adminUserName,'/.ssh/authorized_keys')]",
-    "beegfsInstall": "[concat('bash install_beegfs.sh ', 'beegfs000000', ' meta')]"
+    "beegfsInstall": "[concat('bash install_lustre.sh ', 'beegfs000000', ' meta')]"
   },
   "resources": [
     {
