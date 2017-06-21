@@ -134,32 +134,31 @@
                             "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
                         }
                     ]
-                },
-				"extensionProfile": {
-				"extensions": [
-				  {
-					"name": "installCN",
-					"properties": {
-					  "publisher": "Microsoft.Azure.Extensions",
-					  "type": "CustomScript",
-					  "typeHandlerVersion": "2.0",
-					  "autoUpgradeMinorVersion": true,
-					  "settings": {
-						"fileUris": [
-                          "[uri(deployment().properties.templateLink.uri, 'scripts/master-setup.sh')]",
-                          "[uri(deployment().properties.templateLink.uri, 'scripts/install_lustre.sh')]"
-                    ],
-						"commandToExecute": "[concat('bash master-setup.sh ',variables('adminUserName'),'; ', variables('lustreInstall'))]"
-					  }
-					}
-				  }
-				]
-			  }	
+                },	
             },
             "dependsOn": [
                 "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
             ]
         },
+		{
+		   "apiVersion": "2015-06-15",
+		   "type": "Microsoft.Compute/virtualMachines/extensions",
+		   "name": "installlustre",
+		   "location": "[variables('location')]",
+		   "properties": {
+			  "publisher": "Microsoft.Azure.Extensions",
+			  "type": "CustomScript",
+			  "typeHandlerVersion": "2.0",
+			  "autoUpgradeMinorVersion":true,
+			  "settings": {
+				"fileUris": [
+                  "[uri(deployment().properties.templateLink.uri, 'scripts/master-setup.sh')]",
+                  "[uri(deployment().properties.templateLink.uri, 'scripts/install_lustre.sh')]"
+                ],
+				  "commandToExecute": "[concat('bash master-setup.sh ',variables('adminUserName'),'; ', variables('lustreInstall'))]"
+			  }
+		  }
+	    },
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('virtualNetworkName')]",
