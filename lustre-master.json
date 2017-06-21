@@ -226,7 +226,7 @@
 		   "name": "installlustre",
 		   "location": "[variables('location')]",
 		   "dependsOn": [
-             "[concat('Microsoft.Compute/virtualMachines/', variables('virtualMachineName'))]"
+             "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
             ],
 		   "properties": {
 			  "publisher": "Microsoft.Azure.Extensions",
