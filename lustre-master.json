@@ -66,8 +66,8 @@
         "subnetPrefix": "10.0.0.0/24",
         "publicIPAddressName": "[concat(parameters('virtualMachineName'), 'pip')]",
         "publicIPAddressType": "Dynamic",
-        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetName'))]",
 		"currentDataDiskSize" : "P30",
 		"PremiumStorageMap": {
 		  "P10": {
