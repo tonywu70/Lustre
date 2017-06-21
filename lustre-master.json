@@ -196,13 +196,13 @@
                             },
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIpAddress": {
-                                "id": "[resourceId('testlustre','Microsoft.Network/publicIpAddresses', variables('publicIpAddressName'))]"
+                                "id": "[resourceId(resourceGroup().name,'Microsoft.Network/publicIpAddresses', variables('publicIpAddressName'))]"
                             }
                         }
                     }
                 ],
                 "networkSecurityGroup": {
-                    "id": "[resourceId('testlustre', 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                    "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
                 }
             },
             "dependsOn": [
