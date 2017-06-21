@@ -14,7 +14,7 @@ if [ $# < 2 ]; then
 fi
 
 MGMT_HOSTNAME=$1
-BEEGFS_NODE_TYPE="$2"
+NODE_TYPE="$2"
 VOLUME_TYPE=$3
 CUSTOMDOMAIN=$4
 
@@ -42,14 +42,6 @@ is_management()
 {
     hostname | grep "$MGMT_HOSTNAME"
     return $?
-}
-
-is_metadatanode()
-{
-	if [ "$BEEGFS_NODE_TYPE" == "meta" ] || is_allnode || is_convergednode ; then 
-		return 0
-	fi
-	return 1
 }
 
 is_storagenode()
@@ -90,7 +82,7 @@ is_client()
 install_pkgs()
 {
     yum -y install epel-release
-    yum -y install zlib zlib-devel bzip2 bzip2-devel bzip2-libs openssl openssl-devel openssl-libs gcc gcc-c++ nfs-utils rpcbind mdadm wget python-pip https://buildlogs.centos.org/c7.1511.u/kernel/20161024152721/3.10.0-327.36.3.el7.x86_64/kernel-3.10.0-327.36.3.el7.src.rpm https://buildlogs.centos.org/c7.1511.u/kernel/20161024152721/3.10.0-327.36.3.el7.x86_64/kernel-devel-3.10.0-327.36.3.el7.x86_64.rpm https://buildlogs.centos.org/c7.1511.u/kernel/20161024152721/3.10.0-327.36.3.el7.x86_64/kernel-headers-3.10.0-327.36.3.el7.x86_64.rpm https://buildlogs.centos.org/c7.1511.u/kernel/20161024152721/3.10.0-327.36.3.el7.x86_64/kernel-tools-libs-devel-3.10.0-327.36.3.el7.x86_64.rpm openmpi openmpi-devel automake autoconf
+    yum -y install zlib zlib-devel bzip2 bzip2-devel bzip2-libs openssl openssl-devel openssl-libs gcc gcc-c++ nfs-utils rpcbind mdadm wget python-pip openmpi openmpi-devel automake autoconf
 }
 
 # Partitions all data disks attached to the VM and creates
@@ -208,19 +200,14 @@ setup_disks()
     mount -a
 }
 
-install_beegfs_repo()
+install_lustre_repo()
 {
-    # Install BeeGFS repo   
-    wget -O beegfs-rhel7.repo http://www.beegfs.com/release/beegfs_6/dists/beegfs-rhel7.repo
-	
-
-    mv beegfs-rhel7.repo /etc/yum.repos.d/beegfs.repo
-    #rpm --import http://www.beegfs.com/release/beegfs_2015.03/gpg/RPM-GPG-KEY-beegfs
-    rpm --import http://www.beegfs.com/release/beegfs_6/gpg/RPM-GPG-KEY-beegfs
-
+    # Install Lustre repo
+    wget -O LustrePack.repo https://raw.githubusercontent.com/azmigproject/Lustre/master/scripts/LustrePack.repo
+    mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo
 }
 
-install_beegfs()
+install_lustre()
 {
        
 	# setup metata data
@@ -340,35 +327,31 @@ setup_user()
     chown $HPC_USER:$HPC_GROUP $SHARE_SCRATCH	
 }
 
-download_lis()
+setup_lustrecron()
 {
-    wget -O /root/lis-rpms-4.1.3-1.tar.gz https://download.microsoft.com/download/7/6/B/76BE7A6E-E39F-436C-9353-F4B44EF966E9/lis-rpms-4.1.3-1.tar.gz
-    tar -xvzf /root/lis-rpms-4.1.3-1.tar.gz -C /root
-}
-
-install_lis_in_cron()
-{
-	cat >  /root/lis_install.sh << "EOF"
+    cat >  /root/installlustre.sh << "EOF"
 #!/bin/bash
-SETUP_LIS=/root/lispackage.setup
+SETUP_L=/root/lustre.setup
 
-if [ -e "$SETUP_LIS" ]; then
+if [ -e "$SETUP_L" ]; then
     #echo "We're already configured, exiting..."
     exit 0
 fi
-cd /root/LISISO
-./install.sh
-touch $SETUP_LIS
-shutdown -r +1
+touch /root/teststart.setup
+sudo mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
+mkdir /mnt/mgsmds
+sudo mount -t lustre /dev/sdc /mnt/mgsmds
+echo "/dev/sdc /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
+touch /root/lustre.setup
 EOF
-	chmod 700 /root/lis_install.sh
-	crontab -l > LIScron
-	echo "@reboot /root/lis_install.sh >>/root/log.txt" >> LIScron
-	crontab LIScron
-	rm LIScron
+	chmod 700 /root/installlustre.sh
+	crontab -l > lustrecron
+	echo "@reboot /root/installlustre.sh >>/root/log.txt" >> lustrecron
+	crontab lustrecron
+	rm lustrecron
 }
 
-SETUP_MARKER=/var/local/install_beegfs.marker
+SETUP_MARKER=/var/local/install_lustre.marker
 if [ -e "$SETUP_MARKER" ]; then
     echo "We're already configured, exiting..."
     exit 0
@@ -384,12 +367,13 @@ setenforce 0
 install_pkgs
 setup_disks
 setup_user
-tune_tcp
-setup_domain
+#tune_tcp
+#setup_domain
 install_beegfs_repo
-install_beegfs
-download_lis
-install_lis_in_cron
+install_lustre
+setup_lustrecron
+#download_lis
+#install_lis_in_cron
 
 # Create marker file so we know we're configured
 touch $SETUP_MARKER

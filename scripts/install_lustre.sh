@@ -163,9 +163,7 @@ install_lustre_repo()
 {
     # Install Lustre repo
     wget -O LustrePack.repo https://raw.githubusercontent.com/azmigproject/Lustre/master/scripts/LustrePack.repo
-    mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo
-    
-
+    mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo  
 }
 
 install_lustre()
