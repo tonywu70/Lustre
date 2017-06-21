@@ -134,11 +134,8 @@
                             "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
                         }
                     ]
-                },	
-            },
-            "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
-            ]
+                }	
+            }
         },
 		{
 		   "apiVersion": "2015-06-15",
