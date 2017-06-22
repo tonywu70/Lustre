@@ -14,7 +14,10 @@ if [ $# < 2 ]; then
 fi
 
 MGMT_HOSTNAME=`hostname`
-NODE_TYPE="$2"
+NODE_TYPE="$1"
+TEMPLATELINK="$2"
+
+echo " Template link is $TEMPLATELINK"
 
 # Shares
 SHARE_HOME=/share/home
@@ -162,7 +165,7 @@ setup_disks()
 install_lustre_repo()
 {
     # Install Lustre repo
-    wget -O LustrePack.repo https://raw.githubusercontent.com/azmigproject/Lustre/master/scripts/LustrePack.repo
+    wget -O LustrePack.repo $TEMPLATELINK/LustrePack.repo
     mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo  
 }
 
