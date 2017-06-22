@@ -94,6 +94,9 @@
             "name": "[parameters('virtualMachineName')]",
             "apiVersion": "2016-04-30-preview",
             "location": "[variables('location')]",
+			"dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('networkInterfaceName'))]"
+            ],
             "properties": {
                 "osProfile": {
                     "computerName": "[parameters('virtualMachineName')]",
