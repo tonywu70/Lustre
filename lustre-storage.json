@@ -126,6 +126,7 @@
 			"size": 1023
 		  }
 		},
+		"storageDiskSize": "[variables('PremiumStorageMap')[parameters('storageDiskSize')].size]",
 	"storageDiskArray": [
       {
         "diskSizeGB": "[variables('storageDiskSize)]",
@@ -279,7 +280,7 @@
                             "storageAccountType": "Premium_LRS"
                         }
                     },
-                    "dataDisks":"[concat(take(variables('storageDiskArray'), storageDiskCount)]"
+                    "dataDisks":"[concat(take(variables('storageDiskArray'), parameters('storageDiskCount')]"
                 },
                 "networkProfile": {
                     "networkInterfaces": [
