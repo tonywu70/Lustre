@@ -314,7 +314,7 @@
         },
         {
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "[variables('networkInterfaceName')]",
+            "name": "[concat(variables('networkInterfaceName'), 'oss', copyIndex())]",
             "apiVersion": "2016-09-01",
             "location": "[variables('location')]",
             "properties": {
