@@ -317,6 +317,10 @@
             "name": "[concat(variables('networkInterfaceName'), 'oss', copyIndex())]",
             "apiVersion": "2016-09-01",
             "location": "[variables('location')]",
+			"copy": {
+			"name": "ossNicCopy",
+			"count": "[parameters('nodeCount')]"
+		    },
             "properties": {
                 "ipConfigurations": [
                     {
