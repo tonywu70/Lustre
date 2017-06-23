@@ -85,8 +85,9 @@
 	  "volumeType": {
         "type": "string",
         "defaultValue": "RAID0",
-        "allowedValues":
-          "RAID0",
+        "allowedValues":[
+          "RAID0"
+		  ],
         "metadata": {
           "description": "Volume for data disks."
         }
