@@ -280,7 +280,7 @@
                             "storageAccountType": "Premium_LRS"
                         }
                     },
-                    "dataDisks":"[concat(take(variables('storageDiskArray'), parameters('storageDiskCount')]"
+                    "dataDisks":"[concat(take(variables('storageDiskArray'), parameters('storageDiskCount')))]"
                 },
                 "networkProfile": {
                     "networkInterfaces": [
