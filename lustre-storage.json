@@ -307,7 +307,6 @@
         }
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
         "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'), copyindex())]",
         "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
       ]
