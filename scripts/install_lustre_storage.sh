@@ -27,8 +27,8 @@ SHARE_SCRATCH=/share/scratch
 #	SHARE_SCRATCH=$3
 #fi
 
-BEEGFS_METADATA=/data/beegfs/meta
-BEEGFS_STORAGE=/data/beegfs/storage
+BEEGFS_METADATA=/data/lustre/meta
+BEEGFS_STORAGE=/data/lustre/storage
 
 # User
 HPC_USER=hpcuser
@@ -203,6 +203,7 @@ install_lustre()
 		#
 		#systemctl daemon-reload
 		#systemctl enable beegfs-storage.service
+		echo "todo"
 	fi
 
 	if is_client; then
@@ -214,6 +215,7 @@ install_lustre()
 		#systemctl daemon-reload
 		#systemctl enable beegfs-helperd.service
 		#systemctl enable beegfs-client.service
+		echo "todo"
 	fi
 }
 
