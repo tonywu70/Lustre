@@ -92,6 +92,12 @@
         "description": "Volume for data disks."
       }
     },
+    "RGvnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the RG of the virtual network which MGS VM is using."
+      }
+    },
     "mgsNodeName": {
       "type": "string",
       "metadata": {
@@ -105,6 +111,7 @@
     "templatelink": "[uri(deployment().properties.templateLink.uri, 'scripts')]",
     "lustreInstall": "[concat('bash install_lustre.sh ', 'meta ', variables('templatelink'))]",
     "virtualNetworkName": "lustre-vnet",
+    "vnetRG": "[parameters('RGvnetName')]",
     "networkInterfaceName": "[concat(parameters('virtualMachineNamePrefix'), 'nic')]",
     "networkSecurityGroupName": "lustre-nsg",
     "subnetName": "lustre-subnet",
@@ -112,7 +119,7 @@
     "subnetPrefix": "10.0.0.0/24",
     "publicIPAddressName": "[concat(parameters('virtualMachineNamePrefix'), 'pip')]",
     "publicIPAddressType": "Dynamic",
-    "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "vnetId": "[resourceId(variables('vnetRG'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetName'))]",
     "currentDataDiskSize": "P30",
     "PremiumStorageMap": {
