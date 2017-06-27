@@ -135,8 +135,7 @@ install_lustre_repo()
 
 install_lustre()
 {
-       	
-
+echo "install lustre"
 }
 
 setup_user()
