@@ -36,29 +36,6 @@ HPC_UID=7007
 HPC_GROUP=hpc
 HPC_GID=7007
 
-# Returns 0 if this node is the management node.
-#
-is_management()
-{
-    hostname | grep "$MGMT_HOSTNAME"
-    return $?
-}
-
-is_storagenode()
-{
-	if [ "$BEEGFS_NODE_TYPE" == "storage" ] || is_allnode || is_convergednode ; then 
-		return 0
-	fi
-	return 1
-}
-
-is_client()
-{
-	if [ "$BEEGFS_NODE_TYPE" == "client" ] || is_allnode || is_management ; then 
-		return 0
-	fi
-	return 1
-}
 
 # Installs all required packages.
 #
@@ -137,49 +114,17 @@ setup_disks()
     tmpDevice=`mount | grep "on /mnt/resource type" | awk '{print $1}' | sed 's/[0-9]//g'`
 
     # Get the metadata and storage disk sizes from fdisk, we ignore the disks above
-    metadataDiskSize=`fdisk -l | grep '^Disk /dev/' | grep -v $rootDevice | grep -v $tmpDevice | awk '{print $3}' | sort -n -r | tail -1`
-    storageDiskSize=`fdisk -l | grep '^Disk /dev/' | grep -v $rootDevice | grep -v $tmpDevice | awk '{print $3}' | sort -n | tail -1`
-
-    if [ "$metadataDiskSize" == "$storageDiskSize" ]; then
+    #metadataDiskSize=`fdisk -l | grep '^Disk /dev/' | grep -v $rootDevice | grep -v $tmpDevice | awk '{print $3}' | sort -n -r | tail -1`
+    storageDiskSize=`fdisk -l | grep '^Disk /dev/' | grep -v $rootDevice | grep -v $tmpDevice | awk '{print $3}' | sort -n | tail -1`    
 	
 		# Compute number of disks
 		nbDisks=`fdisk -l | grep '^Disk /dev/' | grep -v $rootDevice | grep -v $tmpDevice | wc -l`
 		echo "nbDisks=$nbDisks"
-		let nbMetadaDisks=nbDisks
-		let nbStorageDisks=nbDisks
-			
-		if is_convergednode; then
-			# If metadata and storage disks are the same size, we grab 1/3 for meta, 2/3 for storage
-			
-			# minimum number of disks has to be 2
-			let nbMetadaDisks=nbDisks/3
-			if [ $nbMetadaDisks -lt 2 ]; then
-				let nbMetadaDisks=2
-			fi
-			
-			let nbStorageDisks=nbDisks-nbMetadaDisks
-		fi
-		
-		echo "nbMetadaDisks=$nbMetadaDisks nbStorageDisks=$nbStorageDisks"			
-		
-		metadataDevices="`fdisk -l | grep '^Disk /dev/' | grep $metadataDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | head -$nbMetadaDisks | tr '\n' ' ' | sed 's|/dev/||g'`"
-		storageDevices="`fdisk -l | grep '^Disk /dev/' | grep $storageDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tail -$nbStorageDisks | tr '\n' ' ' | sed 's|/dev/||g'`"
-    else
-        # Based on the known disk sizes, grab the meta and storage devices
-        metadataDevices="`fdisk -l | grep '^Disk /dev/' | grep $metadataDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tr '\n' ' ' | sed 's|/dev/||g'`"
-        storageDevices="`fdisk -l | grep '^Disk /dev/' | grep $storageDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tr '\n' ' ' | sed 's|/dev/||g'`"
-    fi
 
-    if is_storagenode; then
+		storageDevices="`fdisk -l | grep '^Disk /dev/' | grep $storageDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tail -$nbStorageDisks | tr '\n' ' ' | sed 's|/dev/||g'`"
+   
 		mkdir -p $BEEGFS_STORAGE
-		setup_data_disks $BEEGFS_STORAGE "xfs" "$storageDevices" "md10"
-	fi
-	
-    if is_metadatanode; then
-		mkdir -p $BEEGFS_METADATA    
-		setup_data_disks $BEEGFS_METADATA "ext4" "$metadataDevices" "md20"
-	fi
-	
+		setup_data_disks $BEEGFS_STORAGE "xfs" "$storageDevices" "md10"	
     mount -a
 }
 
@@ -206,17 +151,6 @@ install_lustre()
 		echo "todo"
 	fi
 
-	if is_client; then
-		#yum install -y beegfs-client beegfs-helperd beegfs-utils
-		## setup client
-		#sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-client.conf
-		#echo "$SHARE_SCRATCH /etc/beegfs/beegfs-client.conf" > /etc/beegfs/beegfs-mounts.conf
-		#
-		#systemctl daemon-reload
-		#systemctl enable beegfs-helperd.service
-		#systemctl enable beegfs-client.service
-		echo "todo"
-	fi
 }
 
 setup_user()
