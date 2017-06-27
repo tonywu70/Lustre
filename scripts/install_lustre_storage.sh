@@ -52,23 +52,6 @@ is_storagenode()
 	return 1
 }
 
-is_convergednode()
-{
-	if [ "$BEEGFS_NODE_TYPE" == "both" ]; then 
-		return 0
-	fi
-	return 1
-}
-
-is_allnode()
-{
-	if [ "$BEEGFS_NODE_TYPE" == "all" ]; then 
-		return 0
-	fi
-	return 1
-	
-}
-
 is_client()
 {
 	if [ "$BEEGFS_NODE_TYPE" == "client" ] || is_allnode || is_management ; then 
@@ -209,99 +192,28 @@ install_lustre_repo()
 
 install_lustre()
 {
-       
-	# setup metata data
-    if is_metadatanode; then
-		yum install -y beegfs-meta
-		sed -i 's|^storeMetaDirectory.*|storeMetaDirectory = '$BEEGFS_METADATA'|g' /etc/beegfs/beegfs-meta.conf
-		sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-meta.conf
-
-		tune_meta
-
-		systemctl daemon-reload
-		systemctl enable beegfs-meta.service
-		
-	fi
-	
+       	
 	# setup storage
     if is_storagenode; then
-		yum install -y beegfs-storage
-		sed -i 's|^storeStorageDirectory.*|storeStorageDirectory = '$BEEGFS_STORAGE'|g' /etc/beegfs/beegfs-storage.conf
-		sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-storage.conf
-
-		tune_storage
-
-		systemctl daemon-reload
-		systemctl enable beegfs-storage.service
-	fi
-
-	# setup management
-	if is_management; then
-		yum install -y beegfs-mgmtd beegfs-helperd beegfs-utils beegfs-admon
-        
-		# Install management server and client
-		mkdir -p /data/beegfs/mgmtd
-		sed -i 's|^storeMgmtdDirectory.*|storeMgmtdDirectory = /data/beegfs/mgmt|g' /etc/beegfs/beegfs-mgmtd.conf
-		sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-admon.conf
-		systemctl daemon-reload
-		systemctl enable beegfs-mgmtd.service
-		systemctl enable beegfs-admon.service
+		#yum install -y beegfs-storage
+		#sed -i 's|^storeStorageDirectory.*|storeStorageDirectory = '$BEEGFS_STORAGE'|g' /etc/beegfs/beegfs-storage.conf
+		#sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-storage.conf
+		#
+		#tune_storage
+		#
+		#systemctl daemon-reload
+		#systemctl enable beegfs-storage.service
 	fi
 
 	if is_client; then
-		yum install -y beegfs-client beegfs-helperd beegfs-utils
-		# setup client
-		sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-client.conf
-		echo "$SHARE_SCRATCH /etc/beegfs/beegfs-client.conf" > /etc/beegfs/beegfs-mounts.conf
-	
-		systemctl daemon-reload
-		systemctl enable beegfs-helperd.service
-		systemctl enable beegfs-client.service
-	fi
-}
-
-tune_storage()
-{
-	#echo deadline > /sys/block/md10/queue/scheduler
-	#echo 4096 > /sys/block/md10/queue/nr_requests
-	#echo 32768 > /sys/block/md10/queue/read_ahead_kb
-
-	sed -i 's/^connMaxInternodeNum.*/connMaxInternodeNum = 800/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneNumWorkers.*/tuneNumWorkers = 128/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneFileReadAheadSize.*/tuneFileReadAheadSize = 32m/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneFileReadAheadTriggerSize.*/tuneFileReadAheadTriggerSize = 2m/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneFileReadSize.*/tuneFileReadSize = 256k/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneFileWriteSize.*/tuneFileWriteSize = 256k/g' /etc/beegfs/beegfs-storage.conf
-	sed -i 's/^tuneWorkerBufSize.*/tuneWorkerBufSize = 16m/g' /etc/beegfs/beegfs-storage.conf	
-}
-
-tune_meta()
-{
-	# See http://www.beegfs.com/wiki/MetaServerTuning#xattr
-	#echo deadline > /sys/block/md20/queue/scheduler
-	#echo 128 > /sys/block/md20/queue/nr_requests
-	#echo 128 > /sys/block/md20/queue/read_ahead_kb
-
-	sed -i 's/^connMaxInternodeNum.*/connMaxInternodeNum = 800/g' /etc/beegfs/beegfs-meta.conf
-	sed -i 's/^tuneNumWorkers.*/tuneNumWorkers = 128/g' /etc/beegfs/beegfs-meta.conf
-}
-
-tune_tcp()
-{
-    echo "net.ipv4.neigh.default.gc_thresh1=1100" >> /etc/sysctl.conf
-    echo "net.ipv4.neigh.default.gc_thresh2=2200" >> /etc/sysctl.conf
-    echo "net.ipv4.neigh.default.gc_thresh3=4400" >> /etc/sysctl.conf
-}
-
-setup_domain()
-{
-    if [ -n "$CUSTOMDOMAIN" ]; then
-
-		# surround domain names separated by comma with " after removing extra spaces
-		QUOTEDDOMAIN=$(echo $CUSTOMDOMAIN | sed -e 's/ //g' -e 's/"//g' -e 's/^\|$/"/g' -e 's/,/","/g')
-		echo $QUOTEDDOMAIN
-
-		echo "supersede domain-search $QUOTEDDOMAIN;" >> /etc/dhcp/dhclient.conf
+		#yum install -y beegfs-client beegfs-helperd beegfs-utils
+		## setup client
+		#sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-client.conf
+		#echo "$SHARE_SCRATCH /etc/beegfs/beegfs-client.conf" > /etc/beegfs/beegfs-mounts.conf
+		#
+		#systemctl daemon-reload
+		#systemctl enable beegfs-helperd.service
+		#systemctl enable beegfs-client.service
 	fi
 }
 
@@ -369,7 +281,7 @@ setup_disks
 setup_user
 #tune_tcp
 #setup_domain
-install_beegfs_repo
+install_lustre_repo
 install_lustre
 setup_lustrecron
 #download_lis
