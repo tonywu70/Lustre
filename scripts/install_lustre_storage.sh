@@ -9,14 +9,13 @@ if [[ $(id -u) -ne 0 ]] ; then
 fi
 
 if [ $# < 2 ]; then
-    echo "Usage: $0 <ManagementHost> <Type (meta,storage,both,client)> <Mount> <customDomain>"
+    echo "Usage: $0 <ManagementHost> <adminuser> <index>"
     exit 1
 fi
 
 MGMT_HOSTNAME=$1
-NODE_TYPE="$2"
-VOLUME_TYPE=$3
-CUSTOMDOMAIN=$4
+ADMIN_USER=$2
+OSS_INDEX=$3
 
 
 
@@ -27,8 +26,7 @@ SHARE_SCRATCH=/share/scratch
 #	SHARE_SCRATCH=$3
 #fi
 
-BEEGFS_METADATA=/data/lustre/meta
-BEEGFS_STORAGE=/data/lustre/storage
+LUSTRE_STORAGE=/data/lustre/storage
 
 # User
 HPC_USER=hpcuser
@@ -77,7 +75,7 @@ EOF
     # Create RAID-0/RAID-5 volume
     if [ -n "$createdPartitions" ]; then
         devices=`echo $createdPartitions | wc -w`
-        mdadm --create /dev/$raidDevice --level $VOLUME_TYPE --raid-devices $devices $createdPartitions
+        mdadm --create /dev/$raidDevice --level 0 --raid-devices $devices $createdPartitions
         
         sleep 10
         
@@ -123,8 +121,8 @@ setup_disks()
 
 		storageDevices="`fdisk -l | grep '^Disk /dev/' | grep $storageDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tail -$nbStorageDisks | tr '\n' ' ' | sed 's|/dev/||g'`"
    
-		mkdir -p $BEEGFS_STORAGE
-		setup_data_disks $BEEGFS_STORAGE "xfs" "$storageDevices" "md10"	
+		mkdir -p $LUSTRE_STORAGE
+		setup_data_disks $LUSTRE_STORAGE "xfs" "$storageDevices" "md10"	
     mount -a
 }
 
@@ -138,18 +136,6 @@ install_lustre_repo()
 install_lustre()
 {
        	
-	# setup storage
-    if is_storagenode; then
-		#yum install -y beegfs-storage
-		#sed -i 's|^storeStorageDirectory.*|storeStorageDirectory = '$BEEGFS_STORAGE'|g' /etc/beegfs/beegfs-storage.conf
-		#sed -i 's/^sysMgmtdHost.*/sysMgmtdHost = '$MGMT_HOSTNAME'/g' /etc/beegfs/beegfs-storage.conf
-		#
-		#tune_storage
-		#
-		#systemctl daemon-reload
-		#systemctl enable beegfs-storage.service
-		echo "todo"
-	fi
 
 }
 
@@ -218,8 +204,8 @@ setup_user
 #tune_tcp
 #setup_domain
 install_lustre_repo
-install_lustre
-setup_lustrecron
+#install_lustre
+#setup_lustrecron
 #download_lis
 #install_lis_in_cron
 
