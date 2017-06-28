@@ -27,7 +27,7 @@ SHARE_SCRATCH=/share/scratch
 #	SHARE_SCRATCH=$3
 #fi
 
-LUSTRE_STORAGE=/data/lustre/storage
+LUSTRE_STORAGE=/mnt/oss
 
 # User
 HPC_USER=hpcuser
