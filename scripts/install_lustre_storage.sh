@@ -198,7 +198,7 @@ if [ -e "$SETUP_L" ]; then
     exit 0
 fi
 touch /root/teststart.setup
-sudo mkfs.lustre --fsname=LustreFS --backfstype=ldiskfs --reformat --ost --mgsnode=$MGMT_HOSTNAME --index=$OSS_INDEX /dev/md0
+sudo mkfs.lustre --fsname=LustreFS --backfstype=ldiskfs --reformat --ost --mgsnode="$MGMT_HOSTNAME" --index="$OSS_INDEX" /dev/md0
 mkdir /mnt/oss
 sudo mount -t lustre /dev/md0 /mnt/oss
 echo "/dev/md0 /mnt/oss lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
