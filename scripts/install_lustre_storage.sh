@@ -190,7 +190,7 @@ install_lustre()
 setup_lustrecron()
 {
 # cat >  /root/installlustre.sh << "EOF"
-cat <<EOF>b1.sh
+cat <<EOF>/root/installlustre.sh
 #!/bin/bash
 SETUP_L=/root/lustre.setup
 
