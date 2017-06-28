@@ -18,7 +18,7 @@ MGMT_HOSTNAME=$1
 ADMIN_USER=$2
 OSS_INDEX=$3
 
-
+echo "MGS - $MGMT_HOSTNAME User - $ADMIN_USER Index - $OSS_INDEX"
 
 # Shares
 SHARE_HOME=/share/home
