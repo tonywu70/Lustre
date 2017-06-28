@@ -13,6 +13,7 @@ if [ $# < 2 ]; then
     exit 1
 fi
 
+OSS_HOSTNAME=`hostname`
 MGMT_HOSTNAME=$1
 ADMIN_USER=$2
 OSS_INDEX=$3
@@ -125,19 +126,6 @@ setup_disks()
 		setup_data_disks $LUSTRE_STORAGE "xfs" "$storageDevices" "md10"	
     mount -a
 }
-
-install_lustre_repo()
-{
-    # Install Lustre repo
-    wget -O LustrePack.repo https://raw.githubusercontent.com/azmigproject/Lustre/master/scripts/LustrePack.repo
-    mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo
-}
-
-install_lustre()
-{
-echo "install lustre"
-}
-
 setup_user()
 {
     mkdir -p $SHARE_HOME
@@ -160,6 +148,30 @@ setup_user()
     chown $HPC_USER:$HPC_GROUP $SHARE_SCRATCH	
 }
 
+install_lustre_repo()
+{
+    # Install Lustre repo
+    wget -O LustrePack.repo https://raw.githubusercontent.com/azmigproject/Lustre/master/scripts/LustrePack.repo
+    mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo
+}
+
+install_lustre()
+{
+	 yum -y install kernel-3.10.0-514.el7_lustre.x86_64
+     yum -y install lustre-2.9.0-1.el7.x86_64
+     yum -y install kmod-lustre-2.9.0-1.el7.x86_64
+     yum -y install kmod-lustre-osd-ldiskfs-2.9.0-1.el7.x86_64
+     yum -y install lustre-osd-ldiskfs-mount-2.9.0-1.el7.x86_64
+     yum -y install e2fsprogs
+     yum -y install lustre-tests-2.9.0-1.el7.x86_64
+
+     echo “options lnet networks=tcp”> /etc/modprobe.d/lnet.conf
+     chkconfig lnet --add
+     chkconfig lnet on
+     chkconfig lustre --add
+     chkconfig lustre on
+}
+
 setup_lustrecron()
 {
     cat >  /root/installlustre.sh << "EOF"
@@ -171,10 +183,10 @@ if [ -e "$SETUP_L" ]; then
     exit 0
 fi
 touch /root/teststart.setup
-sudo mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
-mkdir /mnt/mgsmds
-sudo mount -t lustre /dev/sdc /mnt/mgsmds
-echo "/dev/sdc /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
+sudo mkfs.lustre --fsname=LustreFS --backfstype=ldiskfs --reformat --ost --mgsnode=$MGMT_HOSTNAME --index=$OSS_INDEX /dev/md0
+mkdir /mnt/oss
+sudo mount -t lustre /dev/md0 /mnt/oss
+echo "/dev/md0 /mnt/oss lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
 touch /root/lustre.setup
 EOF
 	chmod 700 /root/installlustre.sh
@@ -200,11 +212,9 @@ setenforce 0
 install_pkgs
 setup_disks
 setup_user
-#tune_tcp
-#setup_domain
 install_lustre_repo
-#install_lustre
-#setup_lustrecron
+install_lustre
+setup_lustrecron
 #download_lis
 #install_lis_in_cron
 
