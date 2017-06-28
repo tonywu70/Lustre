@@ -123,8 +123,23 @@ setup_disks()
 		storageDevices="`fdisk -l | grep '^Disk /dev/' | grep $storageDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tail -$nbStorageDisks | tr '\n' ' ' | sed 's|/dev/||g'`"
    
 		mkdir -p $LUSTRE_STORAGE
-		setup_data_disks $LUSTRE_STORAGE "xfs" "$storageDevices" "md10"	
+		setup_data_disks $LUSTRE_STORAGE "xfs" "$storageDevices" "md0"	
     mount -a
+}
+setup_raid()
+{
+	#Update system and install mdadm for managing RAID
+	yum clean all && yum update
+	yum install mdadm -y
+
+	#Verify attached data disks
+	ls -l /dev | grep sd
+
+	#Examine data disks
+	mdadm --examine /dev/sd[c-l]
+
+	#Create RAID md device
+	mdadm -C /dev/md0 -l raid0 -n 10 /dev/sd[c-l]
 }
 setup_user()
 {
@@ -210,7 +225,8 @@ sed -i 's/SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
 install_pkgs
-setup_disks
+#setup_disks
+setup_raid
 setup_user
 install_lustre_repo
 install_lustre
