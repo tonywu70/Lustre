@@ -23,7 +23,7 @@ echo "MGS - $MGMT_HOSTNAME and Index - $OSS_INDEX"
 SHARE_HOME=/share/home
 SHARE_SCRATCH=/share/scratch
 
-LUSTRE_CLIENT=/mnt/oss
+LUSTRE_CLIENT=/mnt/lustre
 
 # User
 HPC_USER=hpcuser
