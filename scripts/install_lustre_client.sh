@@ -168,6 +168,20 @@ install_lustre_repo()
 
 install_lustre()
 {
+	yum -y install kernel-3.10.0-514.el7_lustre.x86_64
+     yum -y install lustre-2.9.0-1.el7.x86_64
+     yum -y install kmod-lustre-2.9.0-1.el7.x86_64
+     yum -y install kmod-lustre-osd-ldiskfs-2.9.0-1.el7.x86_64
+     yum -y install lustre-osd-ldiskfs-mount-2.9.0-1.el7.x86_64
+     yum -y install e2fsprogs
+     yum -y install lustre-tests-2.9.0-1.el7.x86_64
+
+     echo “options lnet networks=tcp”> /etc/modprobe.d/lnet.conf
+     chkconfig lnet --add
+     chkconfig lnet on
+     chkconfig lustre --add
+     chkconfig lustre on
+
 	yum install kmod-lustre-client-2.9.0-1.el7.x86_64
 	yum install lustre-client-2.9.0-1.el7.x86_64
 	yum install lustre-client-dkms-2.9.0-1.el7.noarch --skip-broken
