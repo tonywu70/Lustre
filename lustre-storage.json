@@ -385,10 +385,9 @@
         "autoUpgradeMinorVersion": true,
         "settings": {
           "fileUris": [
-            "[uri(deployment().properties.templateLink.uri, 'scripts/install_lustre_storage.sh')]",
-            "[uri(deployment().properties.templateLink.uri, 'scripts/install_lustre_client.sh')]"
+            "[uri(deployment().properties.templateLink.uri, 'scripts/install_lustre_storage.sh')]"
           ],
-          "commandToExecute": "[concat('bash install_lustre_client.sh ',parameters('mgsNodeName'),' ',copyIndex())]"
+          "commandToExecute": "[concat('bash install_lustre_storage.sh ',parameters('mgsNodeName'),' ',copyIndex())]"
         }
       }
     }

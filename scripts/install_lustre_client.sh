@@ -227,7 +227,7 @@ setenforce 0
 
 install_pkgs
 #setup_disks
-setup_raid
+#setup_raid
 setup_user
 install_lustre_repo
 install_lustre
