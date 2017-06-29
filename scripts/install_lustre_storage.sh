@@ -188,24 +188,24 @@ install_lustre()
 
 setup_lustrecron()
 {
-	SETUP_L=/root/lustre.setup
-	cat <<EOF>/root/installlustre.sh
-	#!/bin/bash
-	if [ -e "$SETUP_L" ]; then
-		echo "We're already configured, exiting..."
-		exit 0
-	fi
-	sudo mkfs.lustre --fsname=LustreFS --backfstype=ldiskfs --reformat --ost --mgsnode=$MGMT_HOSTNAME --index=$OSS_INDEX /dev/md0
-	mkdir /mnt/oss
-	sudo mount -t lustre /dev/md0 /mnt/oss
-	echo "/dev/md0 /mnt/oss lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
-	touch /root/lustre.setup
-	EOF
-		chmod 700 /root/installlustre.sh
-		crontab -l > lustrecron
-		echo "@reboot /root/installlustre.sh >>/root/log.txt" >> lustrecron
-		crontab lustrecron
-		rm lustrecron
+SETUP_L=/root/lustre.setup
+cat <<EOF>/root/installlustre.sh
+#!/bin/bash
+if [ -e "$SETUP_L" ]; then
+	echo "We're already configured, exiting..."
+	exit 0
+fi
+sudo mkfs.lustre --fsname=LustreFS --backfstype=ldiskfs --reformat --ost --mgsnode=$MGMT_HOSTNAME --index=$OSS_INDEX /dev/md0
+mkdir /mnt/oss
+sudo mount -t lustre /dev/md0 /mnt/oss
+echo "/dev/md0 /mnt/oss lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
+touch /root/lustre.setup
+EOF
+	chmod 700 /root/installlustre.sh
+	crontab -l > lustrecron
+	echo "@reboot /root/installlustre.sh >>/root/log.txt" >> lustrecron
+	crontab lustrecron
+	rm lustrecron
 }
 
 SETUP_MARKER=/var/local/install_lustre.marker
