@@ -9,15 +9,13 @@ if [[ $(id -u) -ne 0 ]] ; then
 fi
 
 if [ $# < 2 ]; then
-    echo "Usage: $0 <ManagementHost> <adminuser> <index>"
+    echo "Usage: $0 <ManagementHost>"
     exit 1
 fi
 
 
 MGMT_HOSTNAME=$1
-OSS_INDEX=$2
-
-echo "MGS - $MGMT_HOSTNAME and Index - $OSS_INDEX"
+echo "MGS - $MGMT_HOSTNAME"
 
 # Shares
 SHARE_HOME=/share/home
