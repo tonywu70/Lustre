@@ -188,15 +188,13 @@ install_lustre()
 
 setup_lustrecron()
 {
+SETUP_L=/root/lustre.setup
 cat <<EOF>/root/installlustre.sh
 #!/bin/bash
-SETUP_L=/root/lustre.setup
-
 if [ -e "$SETUP_L" ]; then
     echo "We're already configured, exiting..."
     exit 0
 fi
-touch /root/lustrestart.setup
 sudo mkfs.lustre --fsname=LustreFS --backfstype=ldiskfs --reformat --ost --mgsnode=$MGMT_HOSTNAME --index=$OSS_INDEX /dev/md0
 mkdir /mnt/oss
 sudo mount -t lustre /dev/md0 /mnt/oss
