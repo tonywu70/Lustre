@@ -16,7 +16,7 @@
     },
     "virtualMachineSize": {
       "type": "string",
-      "defaultValue": "Standard_DS3_v2",
+      "defaultValue": "Standard_DS14_v2",
       "allowedValues": [
         "Standard_DS1",
         "Standard_DS2",
