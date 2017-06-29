@@ -87,8 +87,8 @@ install_lustre()
 	yum -y install lustre-client-2.9.0-1.el7.x86_64
 	yum -y install lustre-client-dkms-2.9.0-1.el7.noarch --skip-broken
 
-	mkdir -p $LUSTRE_CLIENT
-	mount -t lustre $MGMT_HOSTNAME@tcp:/LustreFS $LUSTRE_CLIENT
+	#mkdir -p $LUSTRE_CLIENT
+	#mount -t lustre $MGMT_HOSTNAME@tcp:/LustreFS $LUSTRE_CLIENT
 }
 
 setup_lustrecron()
@@ -130,7 +130,7 @@ install_pkgs
 setup_user
 install_lustre_repo
 install_lustre
-#setup_lustrecron
+setup_lustrecron
 #download_lis
 #install_lis_in_cron
 
