@@ -13,12 +13,11 @@ if [ $# < 2 ]; then
     exit 1
 fi
 
-OSS_HOSTNAME=`hostname`
-MGMT_HOSTNAME=$1
-ADMIN_USER=$2
-OSS_INDEX=$3
 
-echo "MGS - $MGMT_HOSTNAME User - $ADMIN_USER Index - $OSS_INDEX"
+MGMT_HOSTNAME=$1
+OSS_INDEX=$2
+
+echo "MGS - $MGMT_HOSTNAME and Index - $OSS_INDEX"
 
 # Shares
 SHARE_HOME=/share/home
