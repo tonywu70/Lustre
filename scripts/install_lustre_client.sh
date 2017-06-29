@@ -83,9 +83,9 @@ install_lustre()
     # chkconfig lustre --add
     # chkconfig lustre on
 
-	yum install kmod-lustre-client-2.9.0-1.el7.x86_64
-	yum install lustre-client-2.9.0-1.el7.x86_64
-	yum install lustre-client-dkms-2.9.0-1.el7.noarch --skip-broken
+	yum -y install kmod-lustre-client-2.9.0-1.el7.x86_64
+	yum -y install lustre-client-2.9.0-1.el7.x86_64
+	yum -y install lustre-client-dkms-2.9.0-1.el7.noarch --skip-broken
 
 	#mkdir -p $LUSTRE_CLIENT
 	#mount -t lustre $MGMT_HOSTNAME@tcp:/LustreFS $LUSTRE_CLIENT
@@ -93,23 +93,22 @@ install_lustre()
 
 setup_lustrecron()
 {
-cat <<EOF>/root/installlustre.sh
-#!/bin/bash
-SETUP_L=/root/lustre.setup
-
-if [ -e "$SETUP_L" ]; then
-    echo "We're already configured, exiting..."
-    exit 0
-fi
-mkdir /mnt/lustre
-mount -t lustre $MGMT_HOSTNAME@tcp:/LustreFS /mnt/lustre
-touch /root/lustre.setup
-EOF
-	chmod 700 /root/installlustre.sh
-	crontab -l > lustrecron
-	echo "@reboot /root/installlustre.sh >>/root/log.txt" >> lustrecron
-	crontab lustrecron
-	rm lustrecron
+	SETUP_L=/root/lustre.setup
+	cat <<EOF>/root/installlustre.sh
+	#!/bin/bash
+	if [ -e "$SETUP_L" ]; then
+		echo "We're already configured, exiting..."
+		exit 0
+	fi
+	mkdir /mnt/lustre
+	mount -t lustre $MGMT_HOSTNAME@tcp:/LustreFS /mnt/lustre
+	touch /root/lustre.setup
+	EOF
+		chmod 700 /root/installlustre.sh
+		crontab -l > lustrecron
+		echo "@reboot /root/installlustre.sh >>/root/log.txt" >> lustrecron
+		crontab lustrecron
+		rm lustrecron
 }
 
 SETUP_MARKER=/var/local/install_lustre.marker
