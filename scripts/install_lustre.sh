@@ -112,56 +112,6 @@ EOF
     #fi
 }
 
-setup_disks()
-{      
-    # Dump the current disk config for debugging
-    fdisk -l
-    
-    # Dump the scsi config
-    lsscsi
-    
-    # Get the root/OS disk so we know which device it uses and can ignore it later
-    rootDevice=`mount | grep "on / type" | awk '{print $1}' | sed 's/[0-9]//g'`
-    
-    # Get the TMP disk so we know which device and can ignore it later
-    tmpDevice=`mount | grep "on /mnt/resource type" | awk '{print $1}' | sed 's/[0-9]//g'`
-
-    # Get the metadata and storage disk sizes from fdisk, we ignore the disks above
-    metadataDiskSize=`fdisk -l | grep '^Disk /dev/' | grep -v $rootDevice | grep -v $tmpDevice | awk '{print $3}' | sort -n -r | tail -1`
-    storageDiskSize=`fdisk -l | grep '^Disk /dev/' | grep -v $rootDevice | grep -v $tmpDevice | awk '{print $3}' | sort -n | tail -1`
-
-    if [ "$metadataDiskSize" == "$storageDiskSize" ]; then
-	
-		# Compute number of disks
-		nbDisks=`fdisk -l | grep '^Disk /dev/' | grep -v $rootDevice | grep -v $tmpDevice | wc -l`
-		echo "nbDisks=$nbDisks"
-		let nbMetadaDisks=nbDisks
-		let nbStorageDisks=nbDisks
-			
-		if is_convergednode; then
-			# If metadata and storage disks are the same size, we grab 1/3 for meta, 2/3 for storage
-			
-			# minimum number of disks has to be 2
-			let nbMetadaDisks=nbDisks/3
-			if [ $nbMetadaDisks -lt 2 ]; then
-				let nbMetadaDisks=2
-			fi
-			
-			let nbStorageDisks=nbDisks-nbMetadaDisks
-		fi
-		
-		echo "nbMetadaDisks=$nbMetadaDisks nbStorageDisks=$nbStorageDisks"			
-		
-		metadataDevices="`fdisk -l | grep '^Disk /dev/' | grep $metadataDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | head -$nbMetadaDisks | tr '\n' ' ' | sed 's|/dev/||g'`"
-		storageDevices="`fdisk -l | grep '^Disk /dev/' | grep $storageDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tail -$nbStorageDisks | tr '\n' ' ' | sed 's|/dev/||g'`"
-    else
-        # Based on the known disk sizes, grab the meta and storage devices
-        metadataDevices="`fdisk -l | grep '^Disk /dev/' | grep $metadataDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tr '\n' ' ' | sed 's|/dev/||g'`"
-        storageDevices="`fdisk -l | grep '^Disk /dev/' | grep $storageDiskSize | awk '{print $2}' | awk -F: '{print $1}' | sort | tr '\n' ' ' | sed 's|/dev/||g'`"
-    fi
-    setup_data_disks $METADATA "ext4" "$metadataDevices" "md10"
-}
-
 install_lustre_repo()
 {
     # Install Lustre repo
@@ -187,12 +137,6 @@ install_lustre()
         chkconfig lnet on
         chkconfig lustre --add
         chkconfig lustre on
-        
-        #mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
-        #mkdir /mnt/mgsmds
-        #mount -t lustre /dev/sdc /mnt/mgsmds
-		
-		#echo "/dev/sdc /mnt/mgsmds lustre noatime,nodiratime,nobarrier,nofail 0 2" >> /etc/fstab
 	fi
 }
 
@@ -229,7 +173,6 @@ if [ -e "$SETUP_L" ]; then
     #echo "We're already configured, exiting..."
     exit 0
 fi
-touch /root/teststart.setup
 sudo mkfs.lustre --fsname=LustreFS --mgs --mdt  --backfstype=ldiskfs --reformat /dev/sdc
 mkdir /mnt/mgsmds
 sudo mount -t lustre /dev/sdc /mnt/mgsmds
@@ -257,7 +200,6 @@ sed -i 's/SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
 install_pkgs
-#setup_disks
 setup_user
 install_lustre_repo
 install_lustre

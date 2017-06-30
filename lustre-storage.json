@@ -75,21 +75,11 @@
     },
     "storageDiskCount": {
       "type": "int",
-      "defaultValue": 1,
+      "defaultValue": 10,
       "minValue": 0,
       "maxValue": 63,
       "metadata": {
         "description": "Number of storage disks"
-      }
-    },
-    "volumeType": {
-      "type": "string",
-      "defaultValue": "RAID0",
-      "allowedValues": [
-        "RAID0"
-      ],
-      "metadata": {
-        "description": "Volume for data disks."
       }
     },
     "RGvnetName": {
