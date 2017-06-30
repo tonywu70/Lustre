@@ -31,7 +31,6 @@ HPC_GID=7007
 
 
 # Installs all required packages.
-#
 install_pkgs()
 {
     yum -y install epel-release
@@ -69,26 +68,9 @@ install_lustre_repo()
 
 install_lustre()
 {
-	#yum -y install kernel-3.10.0-514.el7_lustre.x86_64
-    # yum -y install lustre-2.9.0-1.el7.x86_64
-    # yum -y install kmod-lustre-2.9.0-1.el7.x86_64
-    # yum -y install kmod-lustre-osd-ldiskfs-2.9.0-1.el7.x86_64
-    # yum -y install lustre-osd-ldiskfs-mount-2.9.0-1.el7.x86_64
-    # yum -y install e2fsprogs
-    # yum -y install lustre-tests-2.9.0-1.el7.x86_64
-	#
-    # echo “options lnet networks=tcp”> /etc/modprobe.d/lnet.conf
-    # chkconfig lnet --add
-    # chkconfig lnet on
-    # chkconfig lustre --add
-    # chkconfig lustre on
-
 	yum -y install kmod-lustre-client-2.9.0-1.el7.x86_64
 	yum -y install lustre-client-2.9.0-1.el7.x86_64
 	yum -y install lustre-client-dkms-2.9.0-1.el7.noarch --skip-broken
-
-	#mkdir -p $LUSTRE_CLIENT
-	#mount -t lustre $MGMT_HOSTNAME@tcp:/LustreFS $LUSTRE_CLIENT
 }
 
 setup_lustrecron()
@@ -125,14 +107,10 @@ sed -i 's/SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
 setenforce 0
 
 install_pkgs
-#setup_disks
-#setup_raid
 setup_user
 install_lustre_repo
 install_lustre
 setup_lustrecron
-#download_lis
-#install_lis_in_cron
 
 # Create marker file so we know we're configured
 touch $SETUP_MARKER
