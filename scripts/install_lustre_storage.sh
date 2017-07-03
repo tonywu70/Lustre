@@ -55,7 +55,7 @@ setup_raid()
 	mdadm --examine /dev/sd[c-l]
 
 	#Create RAID md device
-	mdadm -C /dev/md0 -l raid0 -n 10 /dev/sd[c-l]
+	mdadm -C /dev/md0 -l raid0 -n 4 /dev/sd[c-z]
 }
 setup_user()
 {
@@ -96,7 +96,7 @@ install_lustre()
      yum -y install e2fsprogs
      yum -y install lustre-tests-2.9.0-1.el7.x86_64
 
-     echo “options lnet networks=tcp”> /etc/modprobe.d/lnet.conf
+     echo â€œoptions lnet networks=tcpâ€> /etc/modprobe.d/lnet.conf
      chkconfig lnet --add
      chkconfig lnet on
      chkconfig lustre --add
