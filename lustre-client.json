@@ -236,7 +236,7 @@
           "fileUris": [
             "[uri(deployment().properties.templateLink.uri, 'scripts/install_lustre_client.sh')]"
           ],
-          "commandToExecute": "[concat('bash install_lustre_client.sh ',parameters('mgsNodeName'))]"
+          "commandToExecute": "[concat('bash install_lustre_client.sh ',parameters('mgsNodeName'),' ',variables(templatelink))]"
         }
       }
     }

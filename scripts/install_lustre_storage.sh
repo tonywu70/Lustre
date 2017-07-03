@@ -16,8 +16,8 @@ fi
 
 MGMT_HOSTNAME=$1
 OSS_INDEX=$2
-
-echo "MGS - $MGMT_HOSTNAME and Index - $OSS_INDEX"
+TEMPLATELINK=$3
+echo "MGS - $MGMT_HOSTNAME Index - $OSS_INDEX and templatelink - $TEMPLATELINK"
 
 # Shares
 SHARE_HOME=/share/home
@@ -82,7 +82,7 @@ setup_user()
 install_lustre_repo()
 {
     # Install Lustre repo
-    wget -O LustrePack.repo https://raw.githubusercontent.com/azmigproject/Lustre/master/scripts/LustrePack.repo
+    wget -O LustrePack.repo $TEMPLATELINK/LustrePack.repo
     mv LustrePack.repo /etc/yum.repos.d/LustrePack.repo
 }
 
