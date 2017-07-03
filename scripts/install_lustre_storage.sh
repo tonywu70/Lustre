@@ -55,7 +55,7 @@ setup_raid()
 	mdadm --examine /dev/sd[c-l]
 
 	#Create RAID md device
-	mdadm -C /dev/md0 -l raid0 -n 4 /dev/sd[c-z]
+	mdadm -C /dev/md0 -l raid0 -n 15 /dev/sd[c-z]
 }
 setup_user()
 {
