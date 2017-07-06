@@ -35,6 +35,39 @@ HPC_GROUP=hpc
 HPC_GID=7007
 
 
+#Added - RAID0
+
+BLACKLIST="/dev/sda|/dev/sdb"
+
+scan_for_new_disks() {
+    # Looks for unpartitioned disks
+    declare -a RET
+    DEVS=($(ls -1 /dev/sd*|egrep -v "${BLACKLIST}"|egrep -v "[0-9]$"))
+    for DEV in "${DEVS[@]}";
+    do
+        # Check each device if there is a "1" partition.  If not,
+        # "assume" it is not partitioned.
+        if [ ! -b ${DEV}1 ];
+        then
+            RET+="${DEV} "
+        fi
+    done
+    echo "${RET}"
+}
+
+get_disk_count() {
+    DISKCOUNT=0
+    for DISK in "${DISKS[@]}";
+    do 
+        DISKCOUNT+=1
+    done;
+    echo "$DISKCOUNT"
+}
+
+
+#End -RAID0
+
+
 # Installs all required packages.
 #
 install_pkgs()
@@ -50,12 +83,15 @@ setup_raid()
 
 	#Verify attached data disks
 	ls -l /dev | grep sd
-
-	#Examine data disks
-	mdadm --examine /dev/sd[c-l]
-
+	
+	DISKS=($(scan_for_new_disks))
+    echo "Disks are ${DISKS[@]}"
+    declare -i DISKCOUNT
+    DISKCOUNT=$(get_disk_count) 
+    echo "Disk count is $DISKCOUNT"
+	
 	#Create RAID md device
-	mdadm -C /dev/md0 -l raid0 -n 15 /dev/sd[c-z]
+	mdadm -C /dev/md0 -l raid0 -n "$DISKCOUNT" "${DISKS[@]}"
 }
 setup_user()
 {
